@@ -1,0 +1,126 @@
+## Day 03 - Users, SGs, Env Vars
+
+## Ansible - Create user
+
+---
+- name: Create sumit-pathnex user
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Create user sumit-pathnex-admin
+      user:
+        name: pathnex-adminshell: /bin/bash
+
+
+
+##  Terraform - Security group (r6i.4xlargeEC2)
+provider "aws" {
+  region: "us-east-1"
+}
+
+resource "aws_security_group" "sumit-pathnexSG" {
+  name        = "sumit-pathnex"
+  description = "sumit-pathnex SG for SSH"
+  
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_block  = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_instance" "sumit-pathnex" {
+  ami                    = "ami-0abcd1234abcd"
+  instance_type          = "r6.4xlarge"
+  vpc_security_group_ids = [aws_security_group.sumit-pathnexSG.id]
+  
+  tags = {
+      Name = "sumit-pathnex-EC2"
+  }
+}
+
+## Kubernetes - Add Environment Variables
+apiVersion: v1
+kind: pod
+metadata:
+  name: pathnex-env-pod
+spec:
+  containers:
+    - name: app
+      image: nginx
+      env:
+        - name: APP_ENV
+          value: "production"
+
+## Shell Script - Check File Exist
+
+#!/bin/bash
+FILE=""/tmp/sumit-pathnex.txt"
+
+if [ -f "$FILE" ]; then
+  echo "File exists"
+esle
+  echo "File does not exist" 
+File
+
+# NodeJS BUild
+## Jenkins Pipeline - NodeJS Build
+
+
+pipeline {
+    agent any 
+    tolls {
+        nodejs 'NodeJS-16'
+      }
+      stages{
+            stage('Checkout') {
+                steps {
+                    git url: 'https://github.com/sumit-pathnex/sample-node-app.git'
+                }
+            }
+            stage('install Dependecies') {
+                steps {
+                    sh 'npm test'
+                } 
+            }
+            stage('Build') {
+                 steps {
+                     sh 'npm run build'
+                }
+           }
+      }
+}
+
+
+## GitLab CI - NodeJS Build
+
+stages:
+  - install
+  - test
+  - build
+
+node-inatll:
+  stage: intall
+  image: node:16
+  script:
+      - git clone https://github.com/sumit-pathnex/sample-node-app.git
+      - cd sample-node-app
+      - npm install
+
+node-test:
+  stage: test
+  image: node:16
+  script:
+    - cd sample-node-app
+    - npm test
+
+node-build:
+  stage: build
+  image: node:16
+  script:
+    - cd sample-node-app
+    - npm run build 
+
