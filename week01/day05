@@ -1,0 +1,98 @@
+# Day 05 - Handlers, User-Data, Resource limits
+
+## Ansible - Handler to restart Nginx
+
+---
+- name: Manage Nginx
+  hosts: all
+  become: all
+
+  tasks:
+    - name: update config file
+      copy:
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
+      notify: restart Nginx
+  
+  handlers: 
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+
+## Terraform - EC2 instance with user data
+resource "aws_instance" "sumit-pathnexEC2" {
+  ami           = "ami-0qwer12341234"
+  instance_type = "c6a.12xlage"
+
+  user_data = <<EOF
+#!/bin/bash
+yum install -y httpd
+systemctl start httpd
+EOF
+
+  tags = {
+    Name = "sumit-pathnexEC2"
+    }
+}
+
+
+
+## Kubernetes - Resource lemits for aa pod
+apiVersion: v1
+kind: pod
+metadata:
+  name: sumit-pathnex-lemited-pod
+spec:
+  containers:
+    - name: app
+      image: nginx
+      resources:
+        limits:
+          memory: "256
+          cpu: "500m"
+
+
+
+# Day 05 - Environment Variables
+ ## jenkins pipeline - use Environmenmt Variables
+
+
+ pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "sumit-pathnex"
+    }
+    stages {
+        stage('Print') {
+            steps {
+                sh 'echo "Welcome to $INSTITUTE_NAME Devops Training"'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -Dinstitute.name=$INSTITUTE_NAME'
+            }
+        }
+    }
+}
+
+
+ ## 🔹 GitLab CI — Use Environment Variables
+You will learn how to **use CI variables in GitLab pipelines**.
+
+stages:
+  - build
+
+variables:
+  INSTITUTE_NAME: "sumit-pathnex"
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script: 
+   - git clone https://github.com/sumit-pathnex/sample-java-app.git
+    - cd sample-java-app
+    - echo "Welcome to $INSTITUTE_NAME DevOps Training"
+    - mvn clean package -Dinstitute.name=$INSTITUTE_NAME
