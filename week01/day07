@@ -1,0 +1,42 @@
+# Day 07 - SPEED TYPING
+
+## Jenkins pipeline - Parameterized
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'ENVIRONMENT',defaultValue: 'dev', 'Deployment Environment')
+    }
+    environment {
+        INSTITUTE_NAME = "Pathnex"
+    }
+    stages {
+        stage('Checkout') 
+            steps {
+                git url: 'https://github.com/sumit-pathnex/sample-java-app.git'
+        }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"'
+
+            }
+        }
+
+    }
+}
+
+## GitLab CI - Parameterized via Variables
+
+stages:
+    - deploy
+
+variable:
+  INSTITUTE_NAME: "sumit-pathnex"
+  ENVIRONMENT: "dev"
+
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"
+    
