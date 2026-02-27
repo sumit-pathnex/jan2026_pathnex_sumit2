@@ -1,0 +1,78 @@
+# day09 templates,internet gateways , config maps
+
+# ansible use jinja 2
+
+---
+- name: deploy template for pathnex
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: copy template file
+      template:
+        src: pathnex.config.j2
+        dest: /etc/pathnex.config
+# terraform internet gateway
+resource "aws_internet_gateway" "pathnex_igw" {
+  vpc_id = aws_pc.pathnex.id
+  
+  tags = {
+    Name = pathnex_igw
+  }
+}
+
+# kubernetes cretate config map
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pathnex-config
+data:
+  APP_MODE: "production"
+  WELCOME_MESSAGE: "hello pathnex"
+
+
+## artifacts and archiving
+
+# jenkins pipeline - archive artifacts
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = pathnex
+    }
+    stages {
+        stage("Build") {
+            steps {
+                git url: 'https://github.com/Pathnex/sample-java-app.git'
+            }
+        }
+        stage('build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('archive') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+}
+
+gitlab ci artifacts
+
+stages:
+  - build
+  
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
