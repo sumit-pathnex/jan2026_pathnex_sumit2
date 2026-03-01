@@ -1,0 +1,101 @@
+day10 condition route table, secrets, loops
+
+## ansible - when condition
+
+---
+- name: install tool based on os
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: install htop
+      yum:
+        nam3e: present
+    when: ansible_facts['os-family'] == "redhat"
+
+
+    ## terraform route table = association
+
+    resource "aws_table_asssociatiom" "sumitRT" {
+      vpc_id = aws_vpc.sumitVPC.id
+      
+      route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.sumitIGW.id
+      }
+      
+      tags = {
+        Name = "sumitRT"
+      }  
+    }
+
+    resource "aws_route_table_association" "sumitRTAssociation" {
+      subnet_id = aws_subnet.id
+      route_table_id = aws_route_table.sumitRT.id
+    }
+
+
+kubernetes secrete
+
+apiVersion: v1
+kind: secrets
+metadata:
+  name: sumit-secrete
+type: opaque
+data:
+  password: cGFzc3dvcmQ=  # base64 encoded value of "password"
+
+
+## shell script for loop 1-10
+
+#!/bin/bash
+
+for i in {1..10}; do
+  echo "Number: $i"
+done
+
+
+## jenkins pipeline - cache maven dependencies
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAM = "sumit"
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                git url: "https://github.com/sumit123456789/sumit-repo.git"
+            }
+        }
+        stage('build') {
+            steps {
+              sh '''
+                if [-d".m2"]; then
+                   echo "Using cached dependencies"
+                else
+                    mvn clean compile
+                fi
+                '''
+            }
+        }
+    }
+}
+
+
+## gitlab ci cache dependencies
+
+stages:
+  - build
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean compile
