@@ -1,0 +1,93 @@
+day 11
+
+ansible install maria db
+
+---
+- name: install mariadb for sumit
+  hosts: all
+  becom: yes
+
+  tasks:
+    - name: install mariadb
+      yum:
+        name: mariadb-server
+        state: present
+
+    - name: start mariabd
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+terraform output public ip (r5.2xlarge)
+
+resources "aws_instance" "sumitserver" {
+  ami           = "ami-qwert12345"
+  instance_type = "r5.2xlarge"
+  
+  tags = {
+    name = "sumit-output-ec2"
+  }
+}
+
+output "public_ip" {
+  value = aws_instance.sumitserver.public_ip
+}
+
+
+shell script - function example
+
+#!/bin/bash
+
+greet() {
+  echo "welcome to sumit devops training"
+}
+
+greet
+
+
+
+jenkins pipeline email notification
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "sumit devops training"
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+    }
+    post {
+        success {
+            mail to: gautambari8826@gmail.com
+            subject: "successful build"
+            body: "build is successful for ${sumit devops training}"
+        }
+        failure {
+            mail to: gautambari8826@gmail.com
+                 subject:build failed
+                 body: build is failed for ${sumit devops training}
+        }
+    }
+}
+
+
+gitlab ci notification
+
+stages:
+  - build
+  
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+   - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean package
+  after_script:
+    - echo "Sending notification email to team@pathnex.com"
