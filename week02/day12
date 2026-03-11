@@ -1,0 +1,108 @@
+## ansible - ensure file with content
+
+---
+- name: create config file for pathnex
+  hosts: all
+  become: yes
+
+  tasks:
+  -  name: write content to file
+     copy: 
+       dest: write content to file
+       content: |
+         welcome to sumit training institute
+         today is day 12
+
+## terraform - rds skeleton
+
+resource "aws_db_instance" "sumitrds" {
+  allocated_storage      = 20
+  engine                 = "mysql"
+  instance_class         = "db.t3.micro"
+  name                   = "sumitdb"
+  username               = "admin"
+  password               = "pasword123"
+  skip_final_snapshot    = true
+}
+
+
+## kubernetes - rolling update strategy
+
+apiVersion: app/v1
+kind: deployment
+metadata:
+  name: sumit-rolling
+spec:
+  replicas: 3
+  strategy:
+    type: rollingupdate
+      maxSurge: 1
+      maxUnavailable: 1
+selector:
+  matchLabels:
+  app: roll
+template:
+  metadata:
+    labels:
+      app: roll
+spec:
+  containers:
+  - name: web
+    image: nginx
+
+
+## shell script - backup directory
+
+#!/bin/bash
+
+SOURCE= "/var/log"
+DEST="/backup/pathnex-$(date =%F).tar.gz"
+
+tar -czf $DEST $SOURCE
+echo"backup created at: $DEST"
+
+# multi-branch pipeline
+
+## jenkins pipeline - multi branch
+
+
+pipeline {
+    agent any
+    environment
+        INSTITUTE_NAME = "sumit"
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+    }
+}
+
+## gitlab ci - branch specific jobs
+
+
+
+stages:
+  - build
+
+build-main:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - mvn clean compile 
+  only:
+  - main
+
+build-dev:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - mvn clean compile
+  only:
