@@ -1,0 +1,87 @@
+# day 13 debug day
+
+
+## anisible broken
+
+- name "broken"
+ hosts: all
+ tasks:
+   -  name: install
+      yum:
+        name: nginx
+        state present
+
+
+## terraform broken
+
+resource "aws_instance" badec2 {
+  ami = ami-123
+instance_type = "c5.large"
+tags = {
+  name: broken
+}
+}
+
+kubernetes broken
+
+apiVersion apps/v1
+kind deployment
+metadata:
+name broken
+spec:
+  replicas 2
+  selector:
+    matchLabels:
+      app broken
+  template:
+     metadata:
+       labels:
+         app broken
+     spec:
+       containers:
+        - name app
+          image nginx
+
+
+
+jenkins pipeline - matrix build
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "SUMIT" 
+    }
+    matrix {
+        axes {
+            axis {
+                name 'JAVA_VERSION
+                value '8','11','17'
+            }
+        }
+        stages {
+            stage('build'){
+                steps {
+                    sh "echo building with java $JAVA_VERSION"
+                }
+            }
+       }
+   }
+}
+
+
+## git lab ci matrix jobs
+
+stages:
+  - build
+
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  parallel:
+    matrix:
+      - JAVA_VERSION: ['8','11','17']
+  script:
+    - echo "Building with Java $JAVA_VERSION"
+
+
