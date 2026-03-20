@@ -1,0 +1,110 @@
+## ansible setup nginx with reserve proxy
+
+---
+- name: setup nginx with reserve proxy
+  hosts: all
+  become: yes
+  tasks:
+    - name: install nginx
+      yum:
+        name: nginx
+        state: present
+    - name: configure nginx as reserve proxy
+      template:
+        src: reserve-proxy.conf.j2
+	dest: /etc/nginx/conf.d/reserve-proxy.conf
+    - name: restsrt nginx service
+      sevice:
+        name: nginx
+	state: started
+	enabled: yes
+
+
+## terraform create s3 bucket with versioning and loggin
+resource "aws_s3_bucket" {
+  bucket = "sumit" 
+  versioning {
+    enabled = true
+  }
+
+  logging {
+    target_bucket = "sumit-log-bucket"
+    target_prefix = "logs/"
+  }
+}
+
+kubernetes ingress with nginx controller
+
+apiVersion = networking.k8s.io/v1
+kind: ingress
+metadata:
+  name: sumit-ingress
+  annotation:
+    nginx.ingress.kubernetes.io/rewrites-target: /
+  spec:
+    rules: 
+      - host: sumit.local
+        http:
+	  paths:
+	  - path: /
+	    pathType: prefix
+	    backend:
+	      service:
+	        name: pathnex-service
+		port:
+		  number: 80
+
+
+## jenkins file- build test deploy
+
+pipeline {
+    agent any
+    stages {
+        statg('build')
+	    steps {
+	        echo 'building docker image...
+		docker.build('pathnex-web-app')
+            }
+	}
+	stage('test') {
+	    steps {
+	        echo 'running tests...'
+	    }
+	}
+	stage('deployment to kubernetes') {
+	    steps {
+	        script {
+		    sh 'kubectl apply -f kubernetes/deployment.yml'
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+## gitlab ci multi stage build
+
+
+stages:
+  - build
+  - push
+  - deploy
+
+build:
+  stage: build
+  script:
+    - docker build -t sumit-web-app .
+
+
+  push:
+    stage: push
+    script:
+      - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      - docker push pathnex-web-app
+
+  deploy:
+    stage: deploy
+    script:
+      - helm upgrade --install sumit-nginx sumit/nginx
