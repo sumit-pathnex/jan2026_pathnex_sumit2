@@ -1,0 +1,120 @@
+## day 15 java s3 bucket cron job file reader
+
+## ansible install java and set java home
+
+--- 
+- name:
+  hosts: all
+  become: yes
+
+
+  tasks:
+    - name: install openJDK
+      yum:
+        name: java-11-openjdk
+	state: present
+
+    - name: set java home
+      lineinfile:
+        path: /etc/profile
+	line:  'export java_home=/usr/lib/jvm/java-11-openjdk
+
+
+
+## terraform create s3 bucket
+
+providers"aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_s3_bucket" "sumits3" {
+  bucket = "sumit-pathnex-bucket"
+
+  tags = {
+    name = "pathnexsumitbucket"
+  }
+}
+
+
+## kubenetes cron jobs
+
+
+apiVersion: batch/v1
+kind: cronjob
+metadata:
+  name: pathnex-cron
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      containers:
+        - name: job
+	  image: busybox
+	  command: ["sh","-c","echo sumit cronjob running"]
+      restartPolicy: on failure
+
+
+## shell script - read line by line
+
+
+#!/bin/bash
+
+FILE="/etc/passwd"
+
+while read line; do
+  echo "Line: $line"
+done < $FILE
+
+
+
+
+## jenkins pipeline slack notifications
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTION-NAME = "SUMIT"
+	SLACK CHANNEL = "#devops"
+    }
+    stages {
+        stage('checkout') {
+	    steps {
+	        git url:
+	    }
+	}
+	stage('build'){
+	   steps {
+	       sh 'mvn clean package'
+	   }
+	}
+    }
+    post {
+        success {
+	    slackSend(channel: "$SLACK_CHANNEL", message: "SUCCESS: $INSTITUTION_name build #${env.build_number}")
+        }
+	failure {
+	            slackSend(channel: "$SLACK_CHANNEL", message: "FAILURE: $INSTITUTE_NAME Build #${env.BUILD_NUMBER}")
+        }
+    }
+}
+
+
+## slack notification
+
+
+stages:
+  - build
+
+
+veriables:
+  INSTITUTE_NAME: "pathnex"
+  SLACK_WEBHOOK: "https://hooks.slack.com/services/XXXXX/YYYYY/ZZZZZ"
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean package
+    - git clone https://github.com/Pathnex/sample-java-app.git
