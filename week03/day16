@@ -1,0 +1,106 @@
+## task file:
+
+--- 
+- name: intall httpd
+  yum:
+    name: httpd
+    state: present
+
+    ## terraform - dynamoDB table
+
+    resources "aws_dynamoDB_yable" "sumittable" {
+      name               = "sumittablr"
+      billing_mode       = "pay_per_request"
+      hash_key           = "id"
+
+      attribute {
+        name = "id"
+	type = "s"}
+
+      tags = {
+	name = "sumit-ddb"
+      }
+    }
+
+
+## kubernetes statefulset
+
+apiVersion: apps/v1
+kind: statefulset
+metadata:
+  name:sumit-db
+spec:
+  serviceName: "sumit"
+  replicas: 2
+  selector: 
+    matcgLabels:
+      app: sumit-db
+  template:
+    metadata:
+      labels:
+        app: pathnex-db
+    spec:
+      containers:
+        - name: db
+	  image: mysql
+	  env:
+	    - name: mysql_root_password
+	      value: "sumit123"
+
+
+
+
+## shell script check sevicing running
+
+#!/bin/bash
+
+SERVICE="sshd"
+
+if systemctl is-active --quiet $SEVICE; then
+  echo "$SEVICE is not running"
+fi
+
+## jenkins pipeline - promotes artifacts
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "sumit"
+    }
+    stages {
+        stage('build')
+	    steps {
+	        sh 'mvn clean package'
+            }
+        }
+	stage('promote') {
+	    steps {
+	        sh 'mvn clean package'
+	    }
+	}
+    }
+}
+
+## git lab ci 
+
+stages:
+  - build
+  - promote
+
+buildL
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - mvn clean package
+  artifacts:
+    path:
+      - target/*.jar
+    expire_in: 1 week
+
+
+promote:
+  stage: promote
+  image: alpine:latest
+  script:
+    - echo promoting artifacts for sumit"
+  when: manual
