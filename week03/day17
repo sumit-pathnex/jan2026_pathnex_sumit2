@@ -1,0 +1,137 @@
+## day17 multi cloud deployment auto healing advanced cicd
+
+## ansible auto healing web server with syatemd
+
+---
+- name: configure autohealing for web server
+  hosts: a;;
+  become: yes
+  tasks:
+    - name: nginx
+    state: started
+    enabled: yes
+    - name: setup auto restart for nginx sevice
+      lineinfile:
+        path:
+	line: "restart=always"
+	create:yes
+    - name: reload systemd
+      command: systmctl daemon-reload
+
+
+## terraform multi cloud infra with aws and azure
+# aws vpc
+resource "aws_vpc" "main" {
+  cidr_block = ""10.0.0.0/16"
+}
+
+# azure vnet
+resource "azurerm_virtual_network" "main" {
+  name            = "sumit-pathnex"
+  location        = "us-west-1"
+  adress_space    = ["10.0.0.0/16"]
+  resource_group_name = azurerm_vpc
+}
+
+# ec2 instance in aws
+
+resource "aws_instance" "pathnex_ec2" {
+  ami             = "ami-123456qwert"
+  inatance_type   = "c5.2xlarge"
+  region          = "us-west-1"
+}
+   
+
+## kubernetes - self healing with liveness and readiness probe
+
+apiVersion: apps/v1
+kind: deployment
+metadata:
+  name: sumit-web-app
+spec:
+  replicas: 3
+  selector
+    matchLabels:
+      app: pathnex-web-app
+  template:
+    metadata:
+      labels:
+        app: sumit-app
+  spec:
+    containers:
+      - name: nginx
+      ports:
+        - containerport: 80
+      livenessprobe:
+        httpGet:
+	  path: /healthz
+	  port: 80
+	initialDelaysecond: 5
+	periodSeconds: 10
+      readinessProbe:
+        httpGet:
+	  path: /health
+	  port: 80
+	initialDelaySecond: 5
+	periodsecond: 10
+
+
+jenkins file rolling deployment with kubernetes
+
+pipeline {
+    agent any 
+    environment {
+        IMAGE_NAME = 'sumit-app'
+    }
+    stages {
+        stage(;build') {
+	    steps {
+	        echo 'building docker image...'
+		docker.build("${env.image}")
+            }
+	}
+	stage('test')
+	    steps {
+	        echo 'running test...'
+            }
+	}
+	stage(deployment) {
+	    steps {
+	        script {
+		    sh kubectl apply
+		    sh kubectl rollout status
+		}
+	   }
+       }
+   }
+}
+
+
+ #GitLab CI/CD — Multi-Cloud Deployment
+stages:
+  - build
+  - push
+  - deploy
+
+build:
+  stage: build
+  script:
+    - docker build -t pathnex-web-app .
+
+push:
+  stage: push
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push pathnex-web-app
+
+deploy_aws:
+  stage: deploy
+  script:
+    - kubectl --context=aws-cluster apply -f kubernetes/deployment.yaml
+
+deploy_azure:
+  stage: deploy
+  script:
+    - kubectl --context=azure-cluster apply -f kubernetes/deployment.yaml
+
+	
