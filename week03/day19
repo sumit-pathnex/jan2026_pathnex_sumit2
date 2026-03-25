@@ -1,0 +1,110 @@
+## day 19 advanced monitering logging security
+## ansible setuo for prometheus monitering
+
+- name: install prometheus for monitering
+  hosts: all
+  become: yes
+  tasks:  
+    - name: install prometheus
+      yum:
+        name: 
+	  -  prometheus
+          -  prometheus-node -exporter
+	state: present
+    - name: start prometheus
+      service:
+        name: prometheus
+	state: started
+	enabled: yes
+
+
+## terraform setup cloudwatch 
+resource "aws_cloudwatch_log_group" "sumit_log_group"
+  name = "sumit-log-group"
+}
+
+resource "aws_cloud_log_stream" "sumit_log_stream" {
+  log_group_name = aws_cloud_watch_log
+  name           = "sumit-group"
+}
+
+## kbernetes - deploy fluentd for logging
+apiVersion: apps/v1
+kind: deployment
+metadata: 
+  name: fluendt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fluentd
+    temolate:
+      metadata:
+        labels:
+	  app: fluentd
+	spec:
+	  containers:
+	    -  name: fluentd
+	       image: fluent
+	       ports:
+	         - contaainerPort: 24224
+---
+apiversion: v1
+kind: sevice
+metadata:
+  name: fluentd
+spec:
+  selector:
+    app: fluentd
+  ports:
+    - protocol: tcp
+      port: 24224
+
+
+
+##jenkinsintegration
+pipeline {
+    agent any
+    stages {
+        stage('build') {
+	    steps {
+	        echo 'running test...'
+	    }
+	}
+	stage('monitering') {
+	    steps {
+	        script {
+		    sh kubectl apply
+		    sh kuctl get pods
+		}
+	    }
+	}
+    }
+}
+
+
+## git lab ci prometheus integration
+
+stages:
+  - build
+  - push
+  - deploy
+
+build:
+  stage: build
+  script:
+    - docker build -t pathnex-web-app .
+
+push:
+  stage: push
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push pathnex-web-app
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl apply -f kubernetes/deployment.yaml
+    - kubectl get pods --watch
+
+
